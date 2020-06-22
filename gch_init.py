@@ -15,7 +15,7 @@ except NameError:
 from lib_gch import *
 from gch_utils import *
 
-def gch_init(pk,pnrg,setxyz,wdir_local,s_c,s_e,ndim,numref,numshaken,conv,mode):
+def gch_init(pk,pnrg,setxyz,wdir_local,s_c,s_e,ndim,numref,numshaken,conv,mode,npca):
     """ Given the kernel matrix, the structure's energies and their corresponding xyz dataset,
     it creates a subfolder in the working directory containing a set of
     structures shaken according to the desired uncertainty.The result
@@ -45,7 +45,6 @@ def gch_init(pk,pnrg,setxyz,wdir_local,s_c,s_e,ndim,numref,numshaken,conv,mode):
     # TODO: change hard coded max residual kpca components
     # Builds an energy + kpca matrix [en kp_1 kp_2 kp_3 .... kp_npca]
     # To be refined into a more compact form
-    npca         = 32
     pfile        = np.ones((len(energy),npca+1))
     pfile[:,0]   = energy
     pfile[:,1:]  = kpca(pkern,npca)
@@ -82,7 +81,8 @@ def gch_init(pk,pnrg,setxyz,wdir_local,s_c,s_e,ndim,numref,numshaken,conv,mode):
         'nshaken':nshaken,
         'inrg':inrg,
         'ndim' : ndim,
-        'convergence_threshold': convth
+        'convergence_threshold': convth,
+        'npca' : npca
         }
 
     #Save a bunch of stuff useful for later
@@ -121,9 +121,10 @@ if __name__ == '__main__':
     parser.add_argument("--conv",type=float,default=0.25,help="Number of samples hulls to build, given by 1/conv ( default is 0.25, corresponding to 400 hulls)")
     parser.add_argument("--mode",type=str,default="random",help="Selection criteria for points to be shaken : \
     ['random' for random choice or 'fps' for a farthest point sampling based choice ] (Default random, use fps for sparser sampling) ")
+    parser.add_argument("--npca",type=int,default=32,help="Number of PCA components")
 
 
 
     args = parser.parse_args()
 
-    gch_init(args.kernel,args.nrg,args.ixyz,args.wdir,args.sc,args.se,args.ndim,args.nref,args.nshake,args.conv,args.mode)
+    gch_init(args.kernel,args.nrg,args.ixyz,args.wdir,args.sc,args.se,args.ndim,args.nref,args.nshake,args.conv,args.mode,args.npca)

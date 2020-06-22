@@ -29,12 +29,11 @@ def gch_run(shk,wdir,mp):
     # we want pfile to be global
     
     # TODO: change to take also projections
-    # TODO: change hard-coded max residual kpca components
     pxyz       = input_for_gchrun["setxyz"]
     refids     = np.loadtxt(wdir+'/refstruct.idx',dtype='int')
     refkernel  = np.loadtxt(input_for_gchrun["ref_kernel"])
     ooskernel  = np.loadtxt(shk)
-    shakenproj = ookpca(refkernel,ooskernel,32)
+    shakenproj = ookpca(refkernel,ooskernel,input_for_gchrun["npca"])
 
     np.save(wdir+'/shaketraj',shakenproj)
     sigma_c    = input_for_gchrun["sigma_c"] # fractional uncertainty in DIFFERENCES in lattice vectors BETWEEN STRUCTURES
