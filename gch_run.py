@@ -28,7 +28,6 @@ def gch_run(shk,wdir,mp):
     # I know it looks dodgy, but to make it easy parallelisable
     # we want pfile to be global
     
-    # TODO: change to take also projections
     pxyz       = input_for_gchrun["setxyz"]
     refids     = np.loadtxt(wdir+'/refstruct.idx',dtype='int')
     refkernel  = np.loadtxt(input_for_gchrun["ref_kernel"])
