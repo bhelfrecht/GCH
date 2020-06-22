@@ -70,7 +70,10 @@ def gch_init(pk,pnrg,setxyz,wdir_local,s_c,s_e,ndim,numref,numshaken,conv,mode,n
         initialize_random_sample_GCH(pfile,pxyz,sigma_c,nref,nshaken,wdir,inrg,cols)
         #initialize_random(pfile,pxyz,sigma_c,nref,nshaken,wdir,inrg,cols)
     if mode=="fps":
-        fpsidx = FPS(pkern,nref)
+        if npca is None:
+            fpsidx = FPS(pkern,nref)
+        else:
+            fpsidx = KFPS(pkern,nref)
         initialize_fps_sample_GCH(pfile,fpsidx,pxyz,sigma_c,nref,nshaken,wdir,inrg,cols)
 
     input_for_gchrun = {

@@ -2,9 +2,25 @@ import numpy as np
 import scipy.linalg as salg
 from sklearn.preprocessing import KernelCenterer
 
+def FPS(x, d=0):
+    """
+        Author: Andrea Anelli, Michele Ceriotti
+    """
+    if d == 0 : d = len(x)
+    n = len(x)
+    iy = np.zeros(d, int)
+    # faster evaluation of Euclidean distance
+    n2 = np.sum(x**2,axis=1)
+    iy[0] = np.random.randint(0, n)
+    dl = n2 + n2[iy[0]] - 2* np.dot(x, x[iy[0]])
+    
+    for i in range(1,d):
+        iy[i] = np.argmax(dl)
+        nd = n2 + n2[iy[i]] - 2*np.dot(x,x[iy[i]])
+        dl = np.minimum(dl, nd)
+    return iy
 
-
-def FPS(kernel,nbOfLandmarks,seed=10,initalLandmark=None,listOfDiscardedPoints=None,verbose=False):
+def KFPS(kernel,nbOfLandmarks,seed=10,initalLandmark=None,listOfDiscardedPoints=None,verbose=False):
     nbOfFrames = kernel.shape[0]
     np.random.seed(seed)
     LandmarksIdx = np.zeros(nbOfLandmarks,int)
