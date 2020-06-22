@@ -41,13 +41,16 @@ def gch_init(pk,pnrg,setxyz,wdir_local,s_c,s_e,ndim,numref,numshaken,conv,mode,n
     except:
         os.mkdir(wdir)
 
-    # TODO: change the construction of pfile to take projections also; also add argument
-    # TODO: change hard coded max residual kpca components
     # Builds an energy + kpca matrix [en kp_1 kp_2 kp_3 .... kp_npca]
     # To be refined into a more compact form
-    pfile        = np.ones((len(energy),npca+1))
-    pfile[:,0]   = energy
-    pfile[:,1:]  = kpca(pkern,npca)
+    if npca is None:
+        kpcaproj = pkern
+    elif npca <= 0:
+        npca = len(pkern)
+        kpcaproj = kpca(pkern,npca)
+    else:
+        kpcaproj = kpca(pkern,npca)
+    pfile = np.hstack((energy[:,np.newaxis], kpcaproj))
     cdir         = os.getcwd()
     # Preparing the input json for the gch
     pxyz         = setxyz
@@ -121,8 +124,7 @@ if __name__ == '__main__':
     parser.add_argument("--conv",type=float,default=0.25,help="Number of samples hulls to build, given by 1/conv ( default is 0.25, corresponding to 400 hulls)")
     parser.add_argument("--mode",type=str,default="random",help="Selection criteria for points to be shaken : \
     ['random' for random choice or 'fps' for a farthest point sampling based choice ] (Default random, use fps for sparser sampling) ")
-    parser.add_argument("--npca",type=int,default=32,help="Number of PCA components")
-
+    parser.add_argument("--npca",type=int,default=0,help="Number of PCA components. If <= 0 (default), will include all components. If None, will assume input is a projection")
 
 
     args = parser.parse_args()

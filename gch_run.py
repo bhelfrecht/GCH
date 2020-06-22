@@ -33,7 +33,11 @@ def gch_run(shk,wdir,mp):
     refids     = np.loadtxt(wdir+'/refstruct.idx',dtype='int')
     refkernel  = np.loadtxt(input_for_gchrun["ref_kernel"])
     ooskernel  = np.loadtxt(shk)
-    shakenproj = ookpca(refkernel,ooskernel,input_for_gchrun["npca"])
+    npca       = input_for_gchrun["npca"]
+    if npca is None:
+        shakenproj = ooskernel
+    else:
+        shakenproj = ookpca(refkernel,ooskernel,npca)
 
     np.save(wdir+'/shaketraj',shakenproj)
     sigma_c    = input_for_gchrun["sigma_c"] # fractional uncertainty in DIFFERENCES in lattice vectors BETWEEN STRUCTURES
