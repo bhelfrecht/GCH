@@ -44,7 +44,7 @@ def get_refgch(pfile, inrg=0, cols=[]):
         slist = hull.simplices
         vlist = np.asarray([], int)
 
-        for i in xrange(len(slist)):
+        for i in range(len(slist)):
             if snormals[i,inrg] < 0.:
                 vlist = np.union1d(vlist, slist[i])
 
@@ -59,14 +59,14 @@ def get_refgch(pfile, inrg=0, cols=[]):
     sigma_s = np.zeros((nd,nresdim),dtype='float') ### Structural variance in the higher dimensions
     #sigma_s = np.zeros((nd),dtype='float') ### Structural variance in the higher dimensions
 
-    for i in xrange(ns): # this is a loop over the simplices forming the boundary of the hull
+    for i in range(ns): # this is a loop over the simplices forming the boundary of the hull
         inrm = snormals[i]
         # if we are computing a purely structural chull (no energy column given)
         # or if we are on the downward-looking energy face of the chull (inrm[inrg]<0)
         # then we must consider this facet
         if inrg<0 or inrm[inrg] < 0.:
 
-            for j in xrange(len(data)):
+            for j in range(len(data)):
                 dij = -(np.dot(inrm,data[j])+sshifts[i])  # this is the (signed) distance of the point j from the i-th simplex
                 if np.abs(dij) < 1e-8: dij = 0
                 if elist[j,0]>dij:
@@ -80,7 +80,7 @@ def get_refgch(pfile, inrg=0, cols=[]):
                         projs[j] = data[j,1::]
     cntr = elist[:,1]
 
-    for at in xrange(len(data)):
+    for at in range(len(data)):
         if at in vlist :
             sigma_s[at] = 0.
 
@@ -118,7 +118,7 @@ def get_gch(pfile, inrg=0, cols=[]):
         slist = hull.simplices
         vlist = np.asarray([], int)
 
-        for i in xrange(len(slist)):
+        for i in range(len(slist)):
             if snormals[i,inrg] < 0.:
                 vlist = np.union1d(vlist, slist[i])
 
@@ -131,7 +131,7 @@ def get_gch(pfile, inrg=0, cols=[]):
     sigma_s = np.zeros((nd,nresdim),dtype='float') ### Structural variance in the higher dimensions
     #sigma_s = np.zeros((nd),dtype='float') ### Structural variance in the higher dimensions
 
-    for at in xrange(len(data)):
+    for at in range(len(data)):
         if at in vlist :
             sigma_s[at] = 0.
 
@@ -160,7 +160,7 @@ def eval_sampled_sigmaKPCA(refids,nsamples,wdir):
 
     # initialize varKPCA
     varKPCA = kpcaoos[0,:] * 0.
-    for iref in xrange(len(refids)) :
+    for iref in range(len(refids)) :
         samplesi = iref * (nsamples+1)
         samplesf = (iref + 1) * (nsamples+1) - 1
         #dkpca = kpcaoos[samplesi+1:samplesf,:] - kpcaref[iref,:]
@@ -211,18 +211,18 @@ def create_samples_sigmaKPCA(pxyz,sigma_cell,refstructids,nsamples,wdir):
     np.savetxt(wdir + '/refstruct.idx',refstructids,fmt='%i')
 
     # evaluate sensible uncertainty in atomic positions given an uncertainty in the cell parameters
-    vav = np.average( [ dba[n_ref].get_volume()/dba[n_ref].get_number_of_atoms() for n_ref in xrange(len(dba)) ] )
+    vav = np.average( [ dba[n_ref].get_volume()/len(dba[n_ref]) for n_ref in range(len(dba)) ] )
     sigma_pos = sigma_cell * np.cbrt(vav)
 
-    print 'Uncertainty in Cartesian positions',sigma_pos
+    print('Uncertainty in Cartesian positions',sigma_pos)
 
     shaketrajfull = []
-    for n_ref in xrange(len(dba)):
+    for n_ref in range(len(dba)):
         shaketraj = []
         shaketraj.append(dba[n_ref])
         shaketrajfull.append(dba[n_ref])
 
-        for n_sample in xrange(nsamples) :
+        for n_sample in range(nsamples) :
 
             shakeat = dba[n_ref].copy()
 
@@ -347,7 +347,7 @@ def sample_GCH(pfile,sigma_ev,sigma_etot,epsilon,sigma_s,sigma_KPCA,convthresh,r
     # every candidate with probability>convthresh should have come up
     # around 100 times leaving the remnant uncertainty of the order of 1%
 
-    for n in xrange(N):
+    for n in range(N):
         ## draw stabilities for all structures (within threshold of reference GCH) from Gaussian distr
 
         # update umcertainty in nrg according to previous GCH
@@ -385,7 +385,7 @@ def sample_GCH(pfile,sigma_ev,sigma_etot,epsilon,sigma_s,sigma_KPCA,convthresh,r
         vertex_prob = vertex_scores*1./(n+1)
 
         if ( (n+1)%200 == 0 ) :
-            print "Iteration : ",n+1," in ",N
+            print("Iteration : ",n+1," in ",N)
 
     return vertex_prob,vertex_list
 
@@ -425,7 +425,7 @@ def parallel_sample_GCH(rrank):
     # every candidate with probability>convthresh should have come up
     # around 100 times leaving the remnant uncertainty of the order of 1%
 
-    for n in xrange(nstart,nfinish):
+    for n in range(nstart,nfinish):
         ## draw stabilities for all structures (within threshold of reference GCH) from Gaussian distr
 
         # update umcertainty in nrg according to previous GCH
@@ -465,7 +465,7 @@ def parallel_sample_GCH(rrank):
         vertex_prob = vertex_scores*1./Npp
 
         #if ( (n+1)%200 == 0 ) :
-        #    print "Iteration : ",n+1," in ",N
+        #    print("Iteration : ",n+1," in ",N)
 
     return vertex_prob
 
@@ -478,7 +478,7 @@ def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],mi
     t0=time.time()
     v,contour,sigma_s = get_refgch(pfile,inrg,cols)
     t1=time.time()
-    print 'GCH construction : ',t1-t0,' sec'
+    print('GCH construction : ',t1-t0,' sec')
 
     # reduce data by thresholding stabilites according to max(sigma)
     m = erfinv(1.-convthresh)*np.sqrt(2.)
@@ -500,7 +500,7 @@ def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],mi
     t0 = time.time()
     get_refgch(r_pfile,inrg,cols)
     t1 = time.time()
-    print "Single Hull construction during before pruning : ", t1-t0, " sec"
+    print("Single Hull construction during before pruning : ", t1-t0, " sec")
     ##
 
 
@@ -537,7 +537,7 @@ def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],mi
     rr_sigma_s = r_sigma_s
     nprune = 0
     # LOOP
-    #for nprune in xrange(Nprune):
+    #for nprune in range(Nprune):
     mp = 0.0
     print(" Let's start pruning! ")
     while mp < minprob:
@@ -556,8 +556,8 @@ def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],mi
         rr_sigma_s = rr_sigma_s[vids_remain]
         rr_vids = vids_remain
 
-        print "printing rr_pfile.shape"
-        print rr_pfile.shape
+        print("printing rr_pfile.shape")
+        print(rr_pfile.shape)
 
         origids = origids[rr_vids]
 
@@ -571,8 +571,8 @@ def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],mi
         vprobprune.append(f_vprob)
 
         mp = min(f_vprob[f_vprob>0.0])
-        print mp
-        print "Pruning iter : ",nprune+1," min prob: ",mp," # vertex : ",len(np.where(vprobprune[-1]>0.0)[0])
+        print(mp)
+        print("Pruning iter : ",nprune+1," min prob: ",mp," # vertex : ",len(np.where(vprobprune[-1]>0.0)[0]))
         nprune +=1
     return vprobprune
 
@@ -597,7 +597,7 @@ def parallel_prune_GCH(pfile,refids,nshaken,wdir,Nprune,inrg=0,cols=[],nproc=1,c
     t0=time.time()
     v,contour,sigma_s = get_refgch(pfile,inrg,cols)
     t1=time.time()
-    print 'GCH construction : ',t1-t0,' sec'
+    print('GCH construction : ',t1-t0,' sec')
 
     # reduce data by thresholding stabilites according to max(sigma)
     m = erfinv(1.-convth)*np.sqrt(2.)
@@ -654,7 +654,7 @@ def parallel_prune_GCH(pfile,refids,nshaken,wdir,Nprune,inrg=0,cols=[],nproc=1,c
     #rr_sigma_s = r_sigma_s
 
     # LOOP
-    for nprune in xrange(Nprune):
+    for nprune in range(Nprune):
 
         # REDUCTION OF DATASET
         # sort ids according to their vprob
@@ -678,7 +678,7 @@ def parallel_prune_GCH(pfile,refids,nshaken,wdir,Nprune,inrg=0,cols=[],nproc=1,c
         l_r_vprob = pool.map(parallel_sample_GCH,rank)
 
         r_vprob = (np.sum(l_r_vprob,0))/nproc
-	pool.close()
+        pool.close()
 
         ## initialize vertex probabilities for full dataset at zero
         f_vprob = np.zeros((len(pfile)),dtype='float')
@@ -686,6 +686,6 @@ def parallel_prune_GCH(pfile,refids,nshaken,wdir,Nprune,inrg=0,cols=[],nproc=1,c
 
         vprobprune.append(f_vprob)
 
-        print "Pruning iter : ",nprune+1," in ",Nprune
-	np.savetxt('vprobprune.dat',vprobprune)
+        print("Pruning iter : ",nprune+1," in ",Nprune)
+        np.savetxt('vprobprune.dat',vprobprune)
     return vprobprune
