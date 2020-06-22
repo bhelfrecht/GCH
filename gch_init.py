@@ -41,6 +41,8 @@ def gch_init(pk,pnrg,setxyz,wdir_local,s_c,s_e,ndim,numref,numshaken,conv,mode):
     except:
         os.mkdir(wdir)
 
+    # TODO: change the construction of pfile to take projections also; also add argument
+    # TODO: change hard coded max residual kpca components
     # Builds an energy + kpca matrix [en kp_1 kp_2 kp_3 .... kp_npca]
     # To be refined into a more compact form
     npca         = 32
