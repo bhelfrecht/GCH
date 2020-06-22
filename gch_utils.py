@@ -24,7 +24,7 @@ def FPS(kernel,nbOfLandmarks,seed=10,initalLandmark=None,listOfDiscardedPoints=N
     LandmarksIdx[0] = isel
     nontrue = np.setdiff1d(range(nbOfFrames), listOfDiscardedPoints)
 
-    for nsel in xrange(1,nbOfLandmarks):
+    for nsel in range(1,nbOfLandmarks):
         dmax = 0*np.ones(nbOfFrames,float)
         imax = 0
         distLine = np.sqrt(kernel[isel,isel] + diag - 2 * kernel[isel,:])
@@ -39,13 +39,13 @@ def FPS(kernel,nbOfLandmarks,seed=10,initalLandmark=None,listOfDiscardedPoints=N
         isel = dmax.argmax()
         LandmarksIdx[nsel] = isel
         if verbose is True:
-            print "selected ", isel, " distance ", dmax[isel]
+            print("selected ", isel, " distance ", dmax[isel])
 
     return LandmarksIdx
 
 
 def skenter(kernel):
-    print "Centering!"
+    print("Centering!")
     return KernelCenterer().fit_transform(kernel)
 
 def kpca(kernel,ndim):
@@ -56,7 +56,7 @@ def kpca(kernel,ndim):
     cols=np.mean(k,axis=0);
     rows=np.mean(k,axis=1);
     mean=np.mean(cols);
-    for i in xrange(len(k)):
+    for i in range(len(k)):
         k[:,i]-=cols
         k[i,:]-=rows
     k += mean
@@ -64,7 +64,7 @@ def kpca(kernel,ndim):
     eval, evec = salg.eigh(k ,eigvals=(len(k)-ndim,len(k)-1) )
     eval=np.flipud(eval); evec=np.fliplr(evec)
     pvec = evec.copy()
-    for i in xrange(ndim):
+    for i in range(ndim):
         pvec[:,i] *= 1./np.sqrt(eval[i])
 
     # Projection step
@@ -81,14 +81,14 @@ def ookpca(inrefk,inrectk,ndim=2):
     n = len(sqrk)
     recc = rectk - np.dot(np.ones((m,n)),sqrk)*1./n - np.dot(rectk,np.ones((n,n)))*1./n + 1./n**2 * np.dot(np.ones((m,n)),sqrk).dot(np.ones((n,n)))
 
-    print "  And now we build a projection "
+    print("  And now we build a projection ")
     evalo,evec = salg.eigh(k ,eigvals=(len(k)-ndim,len(k)-1) )
     evalo=np.flipud(evalo); evec=np.fliplr(evec)
     pvec = evec.copy()
 
-    for i in xrange(ndim):
+    for i in range(ndim):
         pvec[:,i] *= 1./np.sqrt(evalo[i])
-    print "Done, super quick. "
+    print("Done, super quick. ")
     return np.dot(recc,pvec)
 
 def extractsubm(mat,plist):
