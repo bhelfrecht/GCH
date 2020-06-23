@@ -121,7 +121,7 @@ if __name__ == '__main__':
     parser.add_argument("-wdir",type=str,default='./',help="Directory where to put the shaken subfolder")
     parser.add_argument("-sc",type=float,default=0.001,help="Cartesian uncertainty in units of measure (default is 1e-3). n.b. Referred to the units used in the dataset (default Angstrom).")
     parser.add_argument("-se",type=float,default=0.01,help="Energetic uncertainty in units of measure (default is 1e-2). n.b. Referred to the units used for the energies (default meV).")
-    parser.add_argument("--ndim",type=int,default=2,help="Specify the dimensionality for hull construction, default is 1 dimensional (E vs KPCA1)")
+    parser.add_argument("--ndim",type=int,default=2,help="Specify the dimensionality for hull construction, default is 1 dimensional (E vs KPCA1). Dimension includes energy.")
     parser.add_argument("--nref",type=int,default=50,help="Number of references to be extracted to build the uncertainties on (default 50 structures, 100 is a good guess in general")
     parser.add_argument("--nshake",type=int,default=50,help="Number of shaken repetitions on ref structures (default 50, it's plenty already)")
     parser.add_argument("--conv",type=float,default=0.25,help="Number of samples hulls to build, given by 1/conv ( default is 0.25, corresponding to 400 hulls)")
