@@ -2,38 +2,29 @@ import numpy as np
 import scipy.linalg as salg
 from sklearn.preprocessing import KernelCenterer
 
-def FPS(x, d=0):
-    """
-        Author: Andrea Anelli, Michele Ceriotti
-    """
-    if d == 0 : d = len(x)
-    n = len(x)
-    iy = np.zeros(d, int)
-    # faster evaluation of Euclidean distance
-    n2 = np.sum(x**2,axis=1)
-    iy[0] = np.random.randint(0, n)
-    dl = n2 + n2[iy[0]] - 2* np.dot(x, x[iy[0]])
-    
-    for i in range(1,d):
-        iy[i] = np.argmax(dl)
-        nd = n2 + n2[iy[i]] - 2*np.dot(x,x[iy[i]])
-        dl = np.minimum(dl, nd)
-    return iy
-
-def KFPS(kernel,nbOfLandmarks,seed=10,initalLandmark=None,listOfDiscardedPoints=None,verbose=False):
-    nbOfFrames = kernel.shape[0]
+def KFPS(x,nbOfLandmarks,seed=10,initialLandmark=None,listOfDiscardedPoints=None,verbose=False,kernel=True):
+    nbOfFrames = x.shape[0]
     np.random.seed(seed)
     LandmarksIdx = np.zeros(nbOfLandmarks,int)
     if listOfDiscardedPoints is None:
         listOfDiscardedPoints = []
-    if initalLandmark is None:
+    if initialLandmark is None:
         isel = int(np.random.uniform()*nbOfFrames)
         while isel in listOfDiscardedPoints:
             isel=int(np.random.uniform()*nbOfFrames)
     else:
-        isel = initalLandmark
+        isel = initialLandmark
 
-    diag = np.diag(kernel)
+    if kernel:
+        diag = np.diag(x)
+        distLineFn = lambda x, isel: (
+            x[isel,isel] + diag - 2 * x[isel, :]
+        )
+    else:
+        diag = np.sum(x**2, axis=1)
+        distLineFn = lambda x, isel: (
+            diag + diag[isel] - 2 * np.dot(x, x[isel])
+        )
 
     ldist = 1e100*np.ones(nbOfFrames,float)
 
@@ -43,7 +34,7 @@ def KFPS(kernel,nbOfLandmarks,seed=10,initalLandmark=None,listOfDiscardedPoints=
     for nsel in range(1,nbOfLandmarks):
         dmax = 0*np.ones(nbOfFrames,float)
         imax = 0
-        distLine = np.sqrt(kernel[isel,isel] + diag - 2 * kernel[isel,:])
+        distLine = distLineFn(x, isel)
 
         dsel = distLine[nontrue]
 
