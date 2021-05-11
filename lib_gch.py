@@ -13,6 +13,7 @@ from scipy.spatial import ConvexHull as chull
 from scipy.interpolate import griddata as sing
 from scipy.special import erfcinv,erfinv
 import multiprocessing
+from gch_utils import hull_distances
 
 
 ## ============================================================================
@@ -316,6 +317,73 @@ def initialize_fps_sample_GCH(pfile,fps_idx,pxyz,sigma_cell,nref,nshaken,wdir,in
 ##                      GCH SAMPLING ROUTINES
 ## ============================================================================
 
+def sample_GCH_distances(pfile,vidxs,sigma_ev,sigma_etot,epsilon,sigma_s,sigma_KPCA,convthresh,inrg,cols):
+    """
+    [[pfile]] : mat     : energy + kpca
+    vidxs: list         : list of indices corresponding to the GCH vertices
+    sigma_ev : scalar   : DFT uncertainty in total/absolute energies
+    convthresh : scalar : measure of smallest vertex probabilities to be resolved
+    inrg : scalar       : index of energy column in pfile
+    [cols] : list       : list of indices of KPCA descriptors to be used in GCH
+                          construction
+    """
+
+    # calculate number of GCHs to be sampled
+    N = int(100./convthresh)
+
+    # initialize hull distances
+    avg_hull_distances = np.zeros(len(pfile),dtype='float')
+    avg_hull_distances_energy = np.zeros(len(pfile),dtype='float')
+
+    # sample GCH
+    # every candidate with probability>convthresh should have come up
+    # around 100 times leaving the remnant uncertainty of the order of 1%
+
+    for n in range(N):
+        ## draw stabilities for all structures (within threshold of reference GCH) from Gaussian distr
+
+        # update umcertainty in nrg according to previous GCH
+
+        # Here:
+        # -- dEDFT is the DFT error in energy
+        # -- epsilon_i = RMS( dE/d\phi_i ) measures the typical energy
+        #    response to variation of KPCA component i,
+        # -- stdev(E) is the standard deviation in DFT energies across the
+        #    dataset (as a measure of the overall energy response to all
+        #    KPCA descriptors)
+        # -- s = |{\bf s}| is the interpolatability/independence score and
+        #    s_i measures the distance of a given structure X from the ideally
+        #    interpolated counterpart X_GCH alond the i-th KPCA component (i>n)
+        sigma = np.sqrt ( np.sum(np.square(sigma_s * epsilon),axis=1) ) / sigma_etot * sigma_ev
+
+        # randomise nrg and kpca according to updated uncertainties
+        # EAE : we only really need to update the kpca descriptors used for the GCH construction --> QUICKER
+        nrg = np.random.normal(pfile[:,0],sigma[:])
+        kpc = np.zeros((pfile[:,1::].shape))
+        kpc = np.random.normal(kpc,1)
+        kpc *= sigma_KPCA
+        kpc += pfile[:,1::]
+
+        # update input for GCH with randomised nrg
+        tmp_pfile = np.column_stack((nrg,kpc))
+
+        # construct new GCH for updated/randomised nrg
+        hull = chull(tmp_pfile[vidxs, :][:, cols])
+
+        distances, energy_distances = hull_distances(
+            tmp_pfile[:, cols], energy_idx=0, hull=hull
+        )
+        avg_hull_distances += distances
+        avg_hull_distances_energy += energy_distances
+
+        if ( (n+1)%200 == 0 ) :
+            print("Iteration : ",n+1," in ",N)
+
+    avg_hull_distances /= N
+    avg_hull_distances_energy /= N
+
+    return avg_hull_distances, avg_hull_distances_energy
+
 
 def sample_GCH(pfile,sigma_ev,sigma_etot,epsilon,sigma_s,sigma_KPCA,convthresh,refids,nshaken,wdir,inrg,cols):
     """
@@ -469,7 +537,7 @@ def parallel_sample_GCH(rrank):
 
     return vertex_prob
 
-def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],minprob=0.5,restart=False):
+def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],minprob=0.5,restart=False,compute_distances=False):
 
     origids = np.array(range(len(pfile)))
     # INITIAL REDUCTION OF DATASET
@@ -574,7 +642,17 @@ def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],mi
         print(mp)
         print("Pruning iter : ",nprune+1," min prob: ",mp," # vertex : ",len(np.where(vprobprune[-1]>0.0)[0]))
         nprune +=1
-    return vprobprune
+
+    # Compute hull distances
+    if compute_distances:
+        print("Computing distances...")
+        vidxs = np.nonzero(vprobprune[-1])[0]
+        avg_hull_distance, avg_hull_distance_energy = sample_GCH_distances(pfile,vidxs,sigma_ev,sigma_etot,epsilon,sigma_s,sigma_KPCA,convthresh,inrg,cols)
+
+        return vprobprune, avg_hull_distance, avg_hull_distance_energy
+
+    else:
+        return vprobprune
 
 def parallel_prune_GCH(pfile,refids,nshaken,wdir,Nprune,inrg=0,cols=[],nproc=1,convth=0.1):
 
