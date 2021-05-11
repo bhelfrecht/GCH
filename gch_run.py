@@ -14,7 +14,7 @@ try:
 except NameError:
     to_unicode = str
 
-def gch_run(shk,wdir,mp):
+def gch_run(shk,wdir,mp,compute_distances=False):
     """ "A code that runs the generalised convex hull construction\
     using the dataset constructed with gch-init.py. It requires in input all the input used in gch-init \
     and the out of sample kernel of the shaken points used for estimating the kernel structural response.\
@@ -56,8 +56,14 @@ def gch_run(shk,wdir,mp):
 
     # statistical sampling of the fuzzy GCH
     # spam the nproc processes !
-    vprobprune = prune_GCH(pfile,sigma_e,convth,refids,nshaken,wdir,inrg,cols,minprob,restart=True)
+    outputs = prune_GCH(pfile,sigma_e,convth,refids,nshaken,wdir,inrg,cols,minprob,restart=True,compute_distances=compute_distances)
     #vprobprune = parallel_prune_GCH(pfile,refids[0:nref],nshaken,wdir,500,inrg,cols,nproc,convth)
+    if compute_distances:
+        vprobprune, avg_hull_distances, avg_hull_distances_energy = outputs
+        np.savetxt(wdir+'/avg_hull_distances.dat',avg_hull_distances)
+        np.savetxt(wdir+'/avg_hull_distances_energy.dat',avg_hull_distances_energy)
+    else:
+        vprobprune = outputs
 
     np.savetxt(wdir+'/vprobprune.dat',vprobprune)
     np.savetxt(wdir+'/vlist.idx',np.where(vprobprune[-1]>0)[0],fmt='%i')
@@ -75,9 +81,10 @@ if __name__ == '__main__':
     parser.add_argument("-wdir",type=str,default='./',help="Directory where to put the shaken subfolder")
     parser.add_argument("-minprob",type=float,default=0.51,help="The pruning iterations will keep removing \
     structures from the set until every point has at least minprob probability of being a hullpsoint. Default to 51%%, higher probabilities mean a finer selection" )
+    parser.add_argument('-distances', action='store_true', help="Compute averaged hull distances")
 
 
 
     args = parser.parse_args()
 
-    gch_run(args.shaken_kernel,args.wdir,args.minprob)
+    gch_run(args.shaken_kernel,args.wdir,args.minprob,compute_distances=args.distances)
