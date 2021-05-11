@@ -552,14 +552,18 @@ def prune_GCH(pfile,sigma_ev,convthresh,refids,nshaken,wdir,inrg=0,cols=[0,1],mi
     m = erfinv(1.-convthresh)*np.sqrt(2.)
     sigma = np.linalg.norm(sigma_s,axis=0)*sigma_ev # baseline energy uncertainty to be
     # used in dataset reduction before GCH sampling
+
+    # For restart=False, reduce vertex candidates by thresholding stabilities
     if restart==False:
         r_sigma_e = np.zeros((len( np.where(contour < m*max(sigma))[0] ))) + sigma_ev
         r_sigma_s = sigma_s[np.where(contour < m*max(sigma))[0]]
         r_pfile = pfile[np.where(contour < m*max(sigma))[0]]
         origids = origids[np.where(contour < m*max(sigma))[0]]
+
+    # For restart=True, don't perform initial reduction
     else:
         r_sigma_e = np.zeros((len(sigma))) + sigma_ev
-        r_sigma_s = np.zeros((sigma_s.shape)) + 0.1
+        r_sigma_s = np.zeros((sigma_s.shape)) + sigma_s #0.1
         r_pfile = pfile.copy()
 
     # BUILDING ONE MORE REFGCH JUST TO GIVE AN IDEA
