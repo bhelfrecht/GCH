@@ -102,6 +102,30 @@ def extractsubm(mat,plist):
     """ Quickly extracts a submatrix, for debugging purposes"""
     return mat[np.ix_(plist,plist)]
 
+def hull_distances(data, energy_idx=0, hull=None):
+    """ Compute hull distances """
+
+    if hull is None:
+        hull = ConvexHull(data)
+
+    # Omit the simplices on the 'top' of the GCH
+    hull_facets = np.delete(
+        hull.equations,
+        np.nonzero(hull.equations[:, energy_idx] > 0.0),
+        axis=0
+    )
+
+    hull_distance = -1.0 * (
+        np.matmul(data, hull_facets[:, 0:-1].T) 
+        + hull_facets[:, -1]
+    )
+
+    hull_distance_energy = -1.0 * hull_distance / hull_facets[:, energy_idx]
+    hull_distance = np.amin(hull_distance, axis=1)
+    hull_distance_energy = np.amin(hull_distance_energy, axis=1)
+
+    return hull_distance, hull_distance_energy
+
 class Hull:
     """ At the moment, not being used. Will be starting point for GCH 2.0"""
     def __init__(self,pfile,sigma_e,sigma_c):
